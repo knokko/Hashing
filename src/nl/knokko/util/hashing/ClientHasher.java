@@ -24,6 +24,8 @@
 package nl.knokko.util.hashing;
 
 import nl.knokko.util.bits.ByteArrayBitOutput;
+import nl.knokko.util.hashing.result.ClientHashResult;
+import nl.knokko.util.hashing.result.HashResult;
 import nl.knokko.util.random.Random;
 import nl.knokko.util.random.RandomArray;
 

@@ -23,6 +23,7 @@
  *******************************************************************************/
 package nl.knokko.util.hashing;
 
+import nl.knokko.util.hashing.result.HashResult;
 import nl.knokko.util.random.PseudoRandom;
 import nl.knokko.util.random.Random;
 import nl.knokko.util.random.RandomArray;
