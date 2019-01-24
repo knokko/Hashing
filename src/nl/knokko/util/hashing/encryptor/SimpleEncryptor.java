@@ -12,12 +12,30 @@ public class SimpleEncryptor implements Encryptor {
 	public SimpleEncryptor(Random random) {
 		this.random = random;
 	}
+	
+	private int[] randomPermutation(int length) {
+		int[] array = new int[length];
+		for (int index = 0; index < array.length; index++) {
+			array[index] = index;
+		}
+		
+		for (int index = 0; index < array.length; index++) {
+			int next = random.fastNextInt(array.length - index) + index;
+			int old = array[next];
+			array[next] = array[index];
+			array[index] = old;
+		}
+		
+		return array;
+	}
+	
+	private static final int HEADER_LENGTH = 5 * 4;
 
 	@Override
 	public byte[] encrypt(byte[] payload) {
 		// The payload itself, plus the payload length, the checksum and the
 		// checkproduct before and after encryption
-		int importantSize = payload.length + 5 * 4;
+		int importantSize = payload.length + HEADER_LENGTH;
 		int size = Math.max(importantSize, MIN_LENGTH);
 		byte[] data = new byte[size];
 
@@ -31,7 +49,7 @@ public class SimpleEncryptor implements Encryptor {
 
 		// Determine how to swap everything
 		// The header contains the length of the payload and several checks
-		int headerIndex = random.nextInt(size - 19);
+		int headerIndex = random.fastNextInt(size - HEADER_LENGTH + 1);
 		int payloadLengthIndex = headerIndex;
 		int payloadSumIndex = headerIndex + 4;
 		int payloadProductIndex = headerIndex + 8;
@@ -60,13 +78,13 @@ public class SimpleEncryptor implements Encryptor {
 		}
 
 		// Assign every byte in the payload a place in the data
-		for (int originalIndex = 0; originalIndex < payload.length; originalIndex++) {
-			int dataIndex = random.nextInt(payload.length - originalIndex);
-			while (takenIndices[dataIndex]) {
-				dataIndex++;
+		int[] permutation = randomPermutation(payload.length);
+		for (int index = 0; index < permutation.length; index++) {
+			if (permutation[index] >= headerIndex) {
+				data[permutation[index] + HEADER_LENGTH] = payload[index];
+			} else {
+				data[permutation[index]] = payload[index];
 			}
-			takenIndices[dataIndex] = true;
-			data[dataIndex] = payload[originalIndex];
 		}
 
 		// The dataSum and dataProduct do not contribute to the stored dataSum and
@@ -118,7 +136,7 @@ public class SimpleEncryptor implements Encryptor {
 	@Override
 	public byte[] decrypt(byte[] data) {
 		int size = data.length;
-		int headerIndex = random.nextInt(size - 19);
+		int headerIndex = random.fastNextInt(size - 19);
 		int payloadLengthIndex = headerIndex;
 		int payloadSumIndex = headerIndex + 4;
 		int payloadProductIndex = headerIndex + 8;
@@ -171,7 +189,7 @@ public class SimpleEncryptor implements Encryptor {
 		boolean[] takenIndices = new boolean[size];
 		byte[] payload = new byte[payloadLength];
 
-		// The indices for the header are already taken, required for mimicing encryption
+		// The indices for the header are already taken, required for mimicking encryption
 		fill(takenIndices, true, payloadLengthIndex, 4);
 		fill(takenIndices, true, payloadSumIndex, 4);
 		fill(takenIndices, true, payloadProductIndex, 4);
@@ -179,13 +197,13 @@ public class SimpleEncryptor implements Encryptor {
 		fill(takenIndices, true, dataProductIndex, 4);
 		
 		// Revert the swap operation
-		for (int originalIndex = 0; originalIndex < payloadLength; originalIndex++) {
-			int dataIndex = random.nextInt(payloadLength - originalIndex);
-			while (takenIndices[dataIndex]) {
-				dataIndex++;
+		int[] permutation = randomPermutation(payloadLength);
+		for (int index = 0; index < payloadLength; index++) {
+			if (permutation[index] >= headerIndex) {
+				payload[index] = data[permutation[index] + HEADER_LENGTH];
+			} else {
+				payload[index] = data[permutation[index]];
 			}
-			takenIndices[dataIndex] = true;
-			payload[originalIndex] = data[dataIndex];
 		}
 
 		// Revert the adding operation
