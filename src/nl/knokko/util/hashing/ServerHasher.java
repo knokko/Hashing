@@ -28,13 +28,15 @@ import nl.knokko.util.random.PseudoRandom;
 import nl.knokko.util.random.Random;
 import nl.knokko.util.random.RandomArray;
 
+import static nl.knokko.util.random.PseudoRandom.Configuration.LEGACY;;
+
 public class ServerHasher extends Hasher {
 
 	public static HashResult tempHash(int[] pass, int[] temp) {
 		Random random = new RandomArray(
-				new PseudoRandom(pass[0], temp[0], pass[1], temp[1], pass[2], pass[3], temp[2], pass[4]),
-				new PseudoRandom(pass[5], temp[3], pass[6], temp[4], pass[7], pass[8], temp[5], pass[9]),
-				new PseudoRandom(pass[10], temp[6], pass[11], temp[7], pass[12], pass[13], temp[8], pass[14]));
+				new PseudoRandom(pass[0], temp[0], pass[1], temp[1], pass[2], pass[3], temp[2], pass[4], LEGACY),
+				new PseudoRandom(pass[5], temp[3], pass[6], temp[4], pass[7], pass[8], temp[5], pass[9], LEGACY),
+				new PseudoRandom(pass[10], temp[6], pass[11], temp[7], pass[12], pass[13], temp[8], pass[14], LEGACY));
 		return new HashResult(random.nextInts(50));
 	}
 }
