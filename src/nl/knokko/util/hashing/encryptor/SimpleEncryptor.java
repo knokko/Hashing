@@ -56,17 +56,6 @@ public class SimpleEncryptor implements Encryptor {
 		int dataSumIndex = headerIndex + 12;
 		int dataProductIndex = headerIndex + 16;
 
-		// Store the indices of the payload in the data
-		// int[] payloadIndices = new int[payload.length];
-		boolean[] takenIndices = new boolean[size];
-
-		// The indices for the header are already taken
-		fill(takenIndices, true, payloadLengthIndex, 4);
-		fill(takenIndices, true, payloadSumIndex, 4);
-		fill(takenIndices, true, payloadProductIndex, 4);
-		fill(takenIndices, true, dataSumIndex, 4);
-		fill(takenIndices, true, dataProductIndex, 4);
-
 		putInt(data, payload.length, payloadLengthIndex);
 		putInt(data, payloadSum, payloadSumIndex);
 		putInt(data, payloadProduct, payloadProductIndex);
@@ -100,12 +89,6 @@ public class SimpleEncryptor implements Encryptor {
 		increaseInt(data, dataSum, dataSumIndex);
 		increaseInt(data, dataProduct, dataProductIndex);
 		return data;
-	}
-
-	private void fill(boolean[] data, boolean value, int index, int length) {
-		for (int i = 0; i < length; i++) {
-			data[index + i] = value;
-		}
 	}
 
 	private void putInt(byte[] data, int value, int index) {
@@ -186,15 +169,7 @@ public class SimpleEncryptor implements Encryptor {
 			return null;
 		}
 
-		boolean[] takenIndices = new boolean[size];
 		byte[] payload = new byte[payloadLength];
-
-		// The indices for the header are already taken, required for mimicking encryption
-		fill(takenIndices, true, payloadLengthIndex, 4);
-		fill(takenIndices, true, payloadSumIndex, 4);
-		fill(takenIndices, true, payloadProductIndex, 4);
-		fill(takenIndices, true, dataSumIndex, 4);
-		fill(takenIndices, true, dataProductIndex, 4);
 		
 		// Revert the swap operation
 		int[] permutation = randomPermutation(payloadLength);
