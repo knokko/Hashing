@@ -70,9 +70,9 @@ public class SimpleEncryptor implements Encryptor {
 		int[] permutation = randomPermutation(payload.length);
 		for (int index = 0; index < permutation.length; index++) {
 			if (permutation[index] >= headerIndex) {
-				data[permutation[index] + HEADER_LENGTH] = payload[index];
+				data[permutation[index] + HEADER_LENGTH] += payload[index];
 			} else {
-				data[permutation[index]] = payload[index];
+				data[permutation[index]] += payload[index];
 			}
 		}
 
@@ -175,15 +175,10 @@ public class SimpleEncryptor implements Encryptor {
 		int[] permutation = randomPermutation(payloadLength);
 		for (int index = 0; index < payloadLength; index++) {
 			if (permutation[index] >= headerIndex) {
-				payload[index] = data[permutation[index] + HEADER_LENGTH];
+				payload[index] = decryptedData[permutation[index] + HEADER_LENGTH];
 			} else {
-				payload[index] = data[permutation[index]];
+				payload[index] = decryptedData[permutation[index]];
 			}
-		}
-
-		// Revert the adding operation
-		for (int index = 0; index < size; index++) {
-			data[index] -= adders[index];
 		}
 		
 		// Check if the read payload sum and payload product match the actual sum and product
