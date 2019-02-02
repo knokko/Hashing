@@ -24,8 +24,6 @@
 package nl.knokko.util.hashing;
 
 import nl.knokko.util.bits.ByteArrayBitOutput;
-import nl.knokko.util.hashing.result.ClientHashResult;
-import nl.knokko.util.hashing.result.HashResult;
 import nl.knokko.util.random.PseudoRandom;
 import nl.knokko.util.random.Random;
 import nl.knokko.util.random.RandomArray;
@@ -37,8 +35,13 @@ public class ClientHasher {
 		buffer.addChars(password.toCharArray());
 		buffer.addChars(salt.toCharArray());
 		Random random = RandomArray.createPseudo(PseudoRandom.Configuration.LEGACY, buffer.getRawBytes());
-		HashResult hash = new HashResult(random.nextInts(20));
-		int[] encryptor = random.nextInts(20);
-		return new ClientHashResult(hash, encryptor);
+		
+		int[] clientSessionSeed = random.nextInts(24);
+		int[] serverSessionSeed = random.nextInts(24);
+		byte[] clientStartSeed = random.nextBytes(256);
+		int[] serverStartSeed = random.nextInts(24);
+		byte[] testPayload = RandomArray.createPseudo(PseudoRandom.Configuration.LEGACY, clientStartSeed).nextBytes(300);
+		
+		return new ClientHashResult(clientStartSeed, serverStartSeed, clientSessionSeed, serverSessionSeed, testPayload);
 	}
 }

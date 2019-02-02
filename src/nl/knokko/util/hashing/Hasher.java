@@ -23,57 +23,35 @@
  *******************************************************************************/
 package nl.knokko.util.hashing;
 
-import nl.knokko.util.hashing.result.HashResult;
-import nl.knokko.util.random.PseudoRandom;
 import nl.knokko.util.random.Random;
 import nl.knokko.util.random.RandomArray;
 
 import static nl.knokko.util.random.PseudoRandom.Configuration.LEGACY;
 
+import nl.knokko.util.bits.BitHelper;
+
 public class Hasher {
 
-	public static HashResult tempHash(HashResult clientHash, int temp1, int temp2, int temp3, int temp4) {
-		int[] client = clientHash.get();
-		Random random = new RandomArray(
-				new PseudoRandom(client[0], client[14], client[1], client[12], temp1, temp4, client[2], client[17], LEGACY),
-				new PseudoRandom(client[3], client[19], client[4], client[10], client[5], client[15], temp2, temp3, LEGACY),
-				new PseudoRandom(client[6], client[11], client[7], client[13], client[8], client[16], client[9],
-						client[18], LEGACY));
-		return new HashResult(client[0] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[7] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[4] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[2] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[8] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[3] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[1] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[6] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[5] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[9] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[17] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[12] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[15] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[19] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[10] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[13] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[16] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[18] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[11] + random.nextInt() + random.nextInt() + random.nextInt(),
-				client[14] + random.nextInt() + random.nextInt() + random.nextInt());
-	}
-
-	public static HashResult encrypt(HashResult clientHash, int[] encryptor) {
-		int[] client = clientHash.get();
-		int[] result = new int[20];
-		for (int index = 0; index < 20; index++)
-			result[index] = client[index] + encryptor[index];
-		return new HashResult(result);
-	}
-
-	public static HashResult decrypt(HashResult encrypted, int[] encryptor) {
-		int[] crypted = encrypted.get();
-		int[] result = new int[20];
-		for (int index = 0; index < 20; index++)
-			result[index] = crypted[index] - encryptor[index];
-		return new HashResult(result);
+	public static Random createRandom(int[] halfSeed1, int[] halfSeed2) {
+		if (halfSeed1.length != halfSeed2.length) {
+			throw new IllegalArgumentException("length1 is " + halfSeed1.length + " and length2 is " + halfSeed2.length);
+		}
+		
+		int length = halfSeed1.length;
+		byte[] bytes = new byte[8 * length];
+		
+		for (int index = 0; index < length; index++) {
+			int byteIndex = index * 8;
+			bytes[byteIndex++] = BitHelper.int2(halfSeed2[index]);
+			bytes[byteIndex++] = BitHelper.int1(halfSeed1[index]);
+			bytes[byteIndex++] = BitHelper.int2(halfSeed1[index]);
+			bytes[byteIndex++] = BitHelper.int3(halfSeed2[index]);
+			bytes[byteIndex++] = BitHelper.int0(halfSeed1[index]);
+			bytes[byteIndex++] = BitHelper.int1(halfSeed2[index]);
+			bytes[byteIndex++] = BitHelper.int0(halfSeed2[index]);
+			bytes[byteIndex] = BitHelper.int3(halfSeed1[index]);
+		}
+		
+		return RandomArray.createPseudo(LEGACY, bytes);
 	}
 }
